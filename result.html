@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Your DigiGuard AI Risk Prediction Results">
+    <title>DigiGuard - Prediction Results</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar">
+    <a href="/" class="logo">
+        <span class="shield-icon">🛡️</span>
+        DigiGuard
+    </a>
+    <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/input">Check Risk</a></li>
+        <li><a href="/result" class="active">Results</a></li>
+        <li><a href="#" id="nav-logout" class="btn btn-secondary btn-sm">Logout</a></li>
+    </ul>
+</nav>
+
+<div class="page-container">
+    <div class="result-layout">
+
+        <!-- Risk Badge -->
+        <div class="risk-badge" id="risk-badge">
+            <div class="risk-icon" id="risk-icon">
+                <span class="material-symbols-outlined" id="risk-icon-symbol">shield</span>
+            </div>
+            <div class="risk-level" id="risk-level-text">ANALYZING...</div>
+            <div class="risk-description" id="risk-description">Based on your digital activity, we've detected patterns in your usage.</div>
+            <div class="confidence-tag" id="confidence-tag">Confidence: ---%</div>
+        </div>
+
+        <!-- Usage Metrics -->
+        <div style="margin-bottom: 16px;">
+            <h3 style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+                <span class="material-symbols-outlined" style="color:var(--accent)">analytics</span>
+                Usage Metrics
+            </h3>
+        </div>
+        <div class="metrics-grid" id="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <span class="material-symbols-outlined">smartphone</span>
+                </div>
+                <div class="metric-label">Screen Time</div>
+                <div class="metric-value" id="m-screen-time">--</div>
+                <div class="metric-unit">hours/day</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <span class="material-symbols-outlined">forum</span>
+                </div>
+                <div class="metric-label">Social Media</div>
+                <div class="metric-value" id="m-social-media">--</div>
+                <div class="metric-unit">hours/day</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <span class="material-symbols-outlined">sports_esports</span>
+                </div>
+                <div class="metric-label">Gaming</div>
+                <div class="metric-value" id="m-gaming">--</div>
+                <div class="metric-unit">hours/day</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <span class="material-symbols-outlined">dark_mode</span>
+                </div>
+                <div class="metric-label">Night Usage</div>
+                <div class="metric-value" id="m-night-usage">--</div>
+                <div class="metric-unit">hours/day</div>
+            </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div style="margin-bottom: 16px;">
+            <h3 style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+                <span class="material-symbols-outlined" style="color:var(--accent)">auto_awesome</span>
+                Recommendations
+            </h3>
+        </div>
+        <div class="recommendations" id="recommendations">
+            <!-- Filled by JS -->
+        </div>
+
+        <!-- Actions -->
+        <div style="display:flex; gap:16px; justify-content:center; margin-top: 40px; flex-wrap:wrap;">
+            <a href="/dashboard" class="btn btn-primary btn-lg">
+                <span class="material-symbols-outlined">dashboard</span>
+                View Dashboard
+            </a>
+            <a href="/input" class="btn btn-secondary btn-lg">
+                <span class="material-symbols-outlined">refresh</span>
+                New Assessment
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const SUPABASE_URL = '{{ supabase_url }}';
+    const SUPABASE_KEY = '{{ supabase_key }}';
+    let supabaseClient = null;
+    if (SUPABASE_URL && SUPABASE_KEY) {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }
+
+    // Logout
+    document.getElementById('nav-logout').addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (supabaseClient) await supabaseClient.auth.signOut();
+        window.location.href = '/login';
+    });
+
+    // Recommendations data
+    const RECOMMENDATIONS = {
+        Low: [
+            { icon: 'thumb_up', title: 'Great Habits!', desc: 'Your screen time is within healthy limits. Keep maintaining your current digital routine.' },
+            { icon: 'schedule', title: 'Stay Consistent', desc: 'Continue your balanced approach to digital device usage and maintain regular screen-free activities.' },
+            { icon: 'self_improvement', title: 'Mindful Usage', desc: 'Keep practicing mindful technology use. Take regular breaks during screen sessions.' },
+            { icon: 'star', title: 'Role Model', desc: 'Your digital habits are exemplary. Consider helping friends and family adopt similar practices.' }
+        ],
+        Medium: [
+            { icon: 'timer', title: 'Screen Limits', desc: 'Reduce daily active screen time by 45 minutes to improve sleep quality and eye health.' },
+            { icon: 'directions_walk', title: 'Exercise Break', desc: 'Take a 20-minute walk after long gaming or social media sessions to reset your posture.' },
+            { icon: 'do_not_disturb', title: 'Study Mode', desc: 'Enable Focus Filter on your phone to block social notifications during study or work hours.' },
+            { icon: 'bedtime', title: 'Digital Curfew', desc: 'Stop all screen use 1 hour before scheduled sleep for better REM sleep cycles.' }
+        ],
+        High: [
+            { icon: 'warning', title: 'Immediate Action Needed', desc: 'Your screen time is critically high. Begin a gradual digital detox starting today.' },
+            { icon: 'group', title: 'Seek Support', desc: 'Talk to a parent, teacher, or counselor about your digital habits. Support is important.' },
+            { icon: 'fitness_center', title: 'Replace with Activities', desc: 'Swap 2 hours of screen time with physical exercise, reading, or outdoor activities daily.' },
+            { icon: 'phone_disabled', title: 'No Late Night Screens', desc: 'Stop all phone and computer use 2 hours before sleep. Use an alarm clock instead of your phone.' }
+        ]
+    };
+
+    const DESCRIPTIONS = {
+        Low: "Your digital habits are within a healthy range. Keep up the great work!",
+        Medium: "Based on your digital activity, we've detected patterns consistent with moderate digital fatigue.",
+        High: "Your screen usage is at a critically high level. Immediate intervention is recommended."
+    };
+
+    const ICONS = {
+        Low: 'verified_user',
+        Medium: 'warning',
+        High: 'gpp_bad'
+    };
+
+    // Load result from sessionStorage
+    function loadResult() {
+        const stored = sessionStorage.getItem('prediction_result');
+        if (!stored) {
+            // No result - show a message or redirect
+            document.getElementById('risk-level-text').textContent = 'NO DATA';
+            document.getElementById('risk-description').textContent = 'Please complete an assessment first.';
+            return;
+        }
+
+        const result = JSON.parse(stored);
+        const level = result.risk_level; // Low, Medium, High
+        const levelLower = level.toLowerCase();
+
+        // Risk Badge
+        const badge = document.getElementById('risk-badge');
+        badge.className = 'risk-badge ' + levelLower;
+
+        document.getElementById('risk-icon-symbol').textContent = ICONS[level] || 'shield';
+        document.getElementById('risk-level-text').textContent = level.toUpperCase() + ' RISK';
+        document.getElementById('risk-description').textContent = DESCRIPTIONS[level] || '';
+        document.getElementById('confidence-tag').textContent = 'Confidence: ' + result.confidence + '%';
+
+        // Metrics
+        document.getElementById('m-screen-time').textContent = result.screen_time + 'h';
+        document.getElementById('m-social-media').textContent = result.social_media + 'h';
+        document.getElementById('m-gaming').textContent = result.gaming + 'h';
+        document.getElementById('m-night-usage').textContent = result.night_usage + 'h';
+
+        // Recommendations
+        const recs = RECOMMENDATIONS[level] || RECOMMENDATIONS['Medium'];
+        const recsContainer = document.getElementById('recommendations');
+        recsContainer.innerHTML = recs.map(rec => `
+            <div class="rec-card">
+                <div class="rec-icon">
+                    <span class="material-symbols-outlined">${rec.icon}</span>
+                </div>
+                <h4>${rec.title}</h4>
+                <p>${rec.desc}</p>
+            </div>
+        `).join('');
+    }
+
+    loadResult();
+</script>
+
+</body>
+</html>

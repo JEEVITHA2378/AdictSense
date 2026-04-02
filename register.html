@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Create your DigiGuard account">
+    <title>DigiGuard - Register</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="auth-page">
+    <!-- Left Visual Side -->
+    <div class="auth-visual">
+        <h2>DigiGuard</h2>
+        <p class="subtitle">Track Your Digital Wellness</p>
+        <div class="ring-preview">
+            <div class="ring-content">
+                <div class="ring-value">72%</div>
+                <div class="ring-label">Safe Habits</div>
+            </div>
+        </div>
+        <p class="subtitle" style="font-size: 0.9rem;">Join us in securing your digital lifestyle</p>
+    </div>
+
+    <!-- Right Form Side -->
+    <div class="auth-form-container">
+        <div class="auth-form">
+            <div class="auth-tabs">
+                <a href="/login" class="auth-tab" style="text-decoration:none;">Login</a>
+                <button class="auth-tab active" id="register-tab-btn">Register</button>
+            </div>
+
+            <h2>Create account</h2>
+            <p class="auth-subtitle">Join us in securing your digital lifestyle</p>
+
+            <form id="register-form">
+                <div class="form-group">
+                    <label class="form-label" for="reg-name">Full Name</label>
+                    <input type="text" id="reg-name" class="form-input" placeholder="Enter your full name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reg-age">Age</label>
+                    <input type="number" id="reg-age" class="form-input" placeholder="Your age" min="10" max="100" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reg-email">Email</label>
+                    <input type="email" id="reg-email" class="form-input" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reg-password">Password</label>
+                    <input type="password" id="reg-password" class="form-input" placeholder="Create a strong password" minlength="6" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block btn-lg" id="register-btn">
+                    Create Account
+                </button>
+            </form>
+
+            <div class="auth-links" style="margin-top: 24px;">
+                <p style="color: var(--text-muted);">Already have an account? <a href="/login">Sign in</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const SUPABASE_URL = '{{ supabase_url }}';
+    const SUPABASE_KEY = '{{ supabase_key }}';
+    let supabaseClient = null;
+    if (SUPABASE_URL && SUPABASE_KEY) {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }
+
+    function showToast(msg, type = 'error') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast ' + type;
+        t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 4000);
+    }
+
+    // Register Form
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('register-btn');
+        const fullName = document.getElementById('reg-name').value;
+        const age = parseInt(document.getElementById('reg-age').value);
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
+
+        btn.textContent = 'Creating account...';
+        btn.disabled = true;
+
+        if (!supabaseClient) {
+            showToast('Supabase not configured. Add keys to .env file.', 'error');
+            btn.textContent = 'Create Account';
+            btn.disabled = false;
+            return;
+        }
+
+        try {
+            // 1. Sign up with Supabase Auth
+            const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+                email: email,
+                password: password,
+                options: {
+                    data: { full_name: fullName, age: age }
+                }
+            });
+
+            if (authError) throw authError;
+
+            // 2. Save profile to profiles table
+            if (authData.user) {
+                const { error: profileError } = await supabaseClient
+                    .from('profiles')
+                    .insert({
+                        user_id: authData.user.id,
+                        full_name: fullName,
+                        age: age
+                    });
+
+                if (profileError) console.warn('Profile save warning:', profileError.message);
+            }
+
+            showToast('Account created! Redirecting...', 'success');
+            setTimeout(() => window.location.href = '/input', 1500);
+        } catch (err) {
+            showToast(err.message || 'Registration failed', 'error');
+            btn.textContent = 'Create Account';
+            btn.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>

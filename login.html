@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Login to DigiGuard - Digital Addiction Risk Detection">
+    <title>DigiGuard - Login</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="auth-page">
+    <!-- Left Visual Side -->
+    <div class="auth-visual">
+        <h2>DigiGuard</h2>
+        <p class="subtitle">Track Your Digital Wellness</p>
+        <div class="ring-preview">
+            <div class="ring-content">
+                <div class="ring-value">72%</div>
+                <div class="ring-label">Safe Habits</div>
+            </div>
+        </div>
+        <p class="subtitle" style="font-size: 0.9rem;">Monitoring your digital habits in real-time</p>
+    </div>
+
+    <!-- Right Form Side -->
+    <div class="auth-form-container">
+        <div class="auth-form">
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="login-tab-btn">Login</button>
+                <a href="/register" class="auth-tab" style="text-decoration:none;">Register</a>
+            </div>
+
+            <h2>Welcome back</h2>
+            <p class="auth-subtitle">Enter your credentials to access your account</p>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="form-label" for="login-email">Email</label>
+                    <input type="email" id="login-email" class="form-input" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="login-password">Password</label>
+                    <input type="password" id="login-password" class="form-input" placeholder="Enter your password" required>
+                </div>
+                <div style="text-align: right; margin-bottom: 24px;">
+                    <a href="#" id="forgot-password-link" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">Forgot password?</a>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block btn-lg" id="login-btn">
+                    Sign In
+                </button>
+            </form>
+
+            <div class="auth-links" style="margin-top: 24px;">
+                <p style="color: var(--text-muted);">Don't have an account? <a href="/register">Create one</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast" id="toast"></div>
+
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    // Supabase Init
+    const SUPABASE_URL = '{{ supabase_url }}';
+    const SUPABASE_KEY = '{{ supabase_key }}';
+    let supabaseClient = null;
+    if (SUPABASE_URL && SUPABASE_KEY) {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }
+
+    function showToast(msg, type = 'error') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast ' + type;
+        t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 4000);
+    }
+
+    // Login Form
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('login-btn');
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+
+        btn.textContent = 'Signing in...';
+        btn.disabled = true;
+
+        if (!supabaseClient) {
+            showToast('Supabase not configured. Add keys to .env file.', 'error');
+            btn.textContent = 'Sign In';
+            btn.disabled = false;
+            return;
+        }
+
+        try {
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+            if (error) throw error;
+
+            showToast('Login successful! Redirecting...', 'success');
+            setTimeout(() => window.location.href = '/dashboard', 1000);
+        } catch (err) {
+            showToast(err.message || 'Login failed', 'error');
+            btn.textContent = 'Sign In';
+            btn.disabled = false;
+        }
+    });
+
+    // Forgot Password
+    document.getElementById('forgot-password-link').addEventListener('click', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        if (!email) {
+            showToast('Please enter your email first', 'warning');
+            return;
+        }
+        if (!supabaseClient) {
+            showToast('Supabase not configured', 'error');
+            return;
+        }
+        try {
+            const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
+            if (error) throw error;
+            showToast('Password reset email sent! Check your inbox.', 'success');
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    });
+</script>
+
+</body>
+</html>

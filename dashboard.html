@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DigiGuard Dashboard - Your Digital Wellness Overview">
+    <title>DigiGuard - Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar">
+    <a href="/" class="logo">
+        <span class="shield-icon">🛡️</span>
+        DigiGuard
+    </a>
+    <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/dashboard" class="active">Dashboard</a></li>
+        <li><a href="/input">Check Risk</a></li>
+        <li><a href="/result">Results</a></li>
+        <li><a href="#" id="nav-logout" class="btn btn-secondary btn-sm">Logout</a></li>
+    </ul>
+</nav>
+
+<div class="page-container">
+
+    <!-- Dashboard Header -->
+    <div class="dash-header">
+        <h1>Welcome back, <span id="dash-username">User</span> 👋</h1>
+        <a href="/input" class="btn btn-primary">
+            <span class="material-symbols-outlined">add</span>
+            New Assessment
+        </a>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="dash-stats">
+        <div class="dash-stat-card">
+            <div class="stat-icon">
+                <span class="material-symbols-outlined">assignment</span>
+            </div>
+            <div class="stat-number" id="total-assessments">0</div>
+            <div class="stat-text">Assessments</div>
+        </div>
+        <div class="dash-stat-card">
+            <div class="stat-icon">
+                <span class="material-symbols-outlined">gpp_bad</span>
+            </div>
+            <div class="stat-number" id="high-risk-count">0</div>
+            <div class="stat-text">High Risk</div>
+        </div>
+        <div class="dash-stat-card">
+            <div class="stat-icon">
+                <span class="material-symbols-outlined">verified_user</span>
+            </div>
+            <div class="stat-number" id="low-risk-count">0</div>
+            <div class="stat-text">Low Risk</div>
+        </div>
+        <div class="dash-stat-card">
+            <div class="stat-icon">
+                <span class="material-symbols-outlined">schedule</span>
+            </div>
+            <div class="stat-number" id="avg-screen-time">0h</div>
+            <div class="stat-text">Avg Screen Time</div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="dash-grid">
+        <!-- Weekly Usage Chart -->
+        <div class="chart-container">
+            <h3>
+                <span class="material-symbols-outlined" style="color:var(--accent)">bar_chart</span>
+                Weekly Screen Usage
+            </h3>
+            <canvas id="weeklyChart"></canvas>
+        </div>
+
+        <!-- Risk Distribution -->
+        <div class="chart-container">
+            <h3>
+                <span class="material-symbols-outlined" style="color:var(--accent)">donut_large</span>
+                Risk Distribution
+            </h3>
+            <canvas id="riskChart"></canvas>
+        </div>
+    </div>
+
+    <!-- History & Profile Row -->
+    <div class="dash-grid">
+        <!-- Assessment History -->
+        <div class="chart-container">
+            <h3>
+                <span class="material-symbols-outlined" style="color:var(--accent)">history</span>
+                Recent Assessments
+            </h3>
+            <div class="history-list" id="history-list">
+                <div style="text-align:center;padding:40px;color:var(--text-muted);">
+                    <span class="material-symbols-outlined" style="font-size:2rem;margin-bottom:8px;display:block;">assignment</span>
+                    No assessments yet. Take your first assessment!
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Card & Tips -->
+        <div>
+            <!-- Profile Card -->
+            <div class="card" style="margin-bottom: 16px;">
+                <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+                    <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:700;color:#000;" id="profile-avatar">?</div>
+                    <div>
+                        <div style="font-weight:700;font-size:1.1rem;" id="profile-name">User</div>
+                        <div style="font-size:0.85rem;color:var(--text-muted);">DigiGuard Member</div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:12px;">
+                    <div style="flex:1;padding:12px;background:var(--bg-input);border-radius:var(--radius-md);text-align:center;">
+                        <div style="font-weight:700;color:var(--accent);" id="profile-avg">0h</div>
+                        <div style="font-size:0.75rem;color:var(--text-muted);">Avg/Day</div>
+                    </div>
+                    <div style="flex:1;padding:12px;background:var(--bg-input);border-radius:var(--radius-md);text-align:center;">
+                        <div style="font-weight:700;color:var(--accent);" id="profile-latest-risk">--</div>
+                        <div style="font-size:0.75rem;color:var(--text-muted);">Latest Risk</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="card">
+                <h3 style="margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+                    <span class="material-symbols-outlined" style="color:var(--accent)">tips_and_updates</span>
+                    Tips for You
+                </h3>
+                <div id="tips-container">
+                    <div style="padding:8px 0;border-bottom:1px solid var(--border-color);font-size:0.9rem;color:var(--text-secondary);">
+                        📱 Set specific phone-free hours during study time
+                    </div>
+                    <div style="padding:8px 0;border-bottom:1px solid var(--border-color);font-size:0.9rem;color:var(--text-secondary);">
+                        🌙 Avoid screens 1 hour before bedtime
+                    </div>
+                    <div style="padding:8px 0;font-size:0.9rem;color:var(--text-secondary);">
+                        🏃 Replace 30 mins of screen time with exercise
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const SUPABASE_URL = '{{ supabase_url }}';
+    const SUPABASE_KEY = '{{ supabase_key }}';
+    let supabaseClient = null;
+    if (SUPABASE_URL && SUPABASE_KEY) {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }
+
+    function showToast(msg, type = 'error') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast ' + type;
+        t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 4000);
+    }
+
+    // Auth Guard + Load Data
+    async function initDashboard() {
+        if (!supabaseClient) {
+            loadDemoData();
+            return;
+        }
+
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) {
+            window.location.href = '/login';
+            return;
+        }
+
+        const userId = session.user.id;
+        const userName = session.user.user_metadata?.full_name || session.user.email;
+
+        // Set user info
+        document.getElementById('dash-username').textContent = userName.split(' ')[0];
+        document.getElementById('profile-name').textContent = userName;
+        document.getElementById('profile-avatar').textContent = userName.charAt(0).toUpperCase();
+
+        // Fetch predictions
+        const { data: predictions } = await supabaseClient
+            .from('predictions')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        // Fetch usage data
+        const { data: usageData } = await supabaseClient
+            .from('usage_data')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        if (predictions && predictions.length > 0) {
+            populateDashboard(predictions, usageData || []);
+        } else {
+            loadDemoData();
+        }
+    }
+
+    function populateDashboard(predictions, usageData) {
+        const total = predictions.length;
+        const highRisk = predictions.filter(p => p.risk_level === 'High').length;
+        const lowRisk = predictions.filter(p => p.risk_level === 'Low').length;
+        const medRisk = total - highRisk - lowRisk;
+
+        // Average screen time
+        const avgScreen = usageData.length > 0
+            ? (usageData.reduce((sum, d) => sum + (d.screen_time || 0), 0) / usageData.length).toFixed(1)
+            : '0';
+
+        // Stats
+        document.getElementById('total-assessments').textContent = total;
+        document.getElementById('high-risk-count').textContent = highRisk;
+        document.getElementById('low-risk-count').textContent = lowRisk;
+        document.getElementById('avg-screen-time').textContent = avgScreen + 'h';
+        document.getElementById('profile-avg').textContent = avgScreen + 'h';
+        document.getElementById('profile-latest-risk').textContent = predictions[0]?.risk_level || '--';
+
+        // Weekly chart data
+        const last7 = usageData.slice(0, 7).reverse();
+        const labels = last7.map((d, i) => {
+            const date = new Date(d.created_at);
+            return date.toLocaleDateString('en', { weekday: 'short' });
+        });
+        const screenData = last7.map(d => d.screen_time || 0);
+
+        renderWeeklyChart(
+            labels.length > 0 ? labels : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            screenData.length > 0 ? screenData : [0, 0, 0, 0, 0, 0, 0]
+        );
+
+        renderRiskChart(lowRisk, medRisk, highRisk);
+        renderHistory(predictions.slice(0, 5));
+
+        // Tips based on latest risk
+        updateTips(predictions[0]?.risk_level || 'Medium');
+    }
+
+    function loadDemoData() {
+        renderWeeklyChart(
+            ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            [5.2, 6.8, 4.5, 7.1, 8.3, 9.0, 6.5]
+        );
+        renderRiskChart(3, 4, 2);
+    }
+
+    function renderWeeklyChart(labels, data) {
+        const ctx = document.getElementById('weeklyChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Screen Time (hrs)',
+                    data: data,
+                    backgroundColor: 'rgba(245, 197, 66, 0.3)',
+                    borderColor: '#f5c542',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#6a6a7a', font: { family: 'Plus Jakarta Sans' } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#6a6a7a', font: { family: 'Plus Jakarta Sans' } }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderRiskChart(low, med, high) {
+        const ctx = document.getElementById('riskChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+                datasets: [{
+                    data: [low, med, high],
+                    backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
+                    borderColor: '#1a1a25',
+                    borderWidth: 3,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#a0a0b0',
+                            padding: 16,
+                            font: { family: 'Plus Jakarta Sans', size: 12 },
+                            usePointStyle: true,
+                            pointStyleWidth: 10
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderHistory(predictions) {
+        const container = document.getElementById('history-list');
+        if (!predictions || predictions.length === 0) return;
+
+        container.innerHTML = predictions.map(p => {
+            const date = new Date(p.created_at);
+            const dateStr = date.toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' });
+            const timeStr = date.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
+            const levelLower = (p.risk_level || 'medium').toLowerCase();
+            return `
+                <div class="history-item">
+                    <div class="history-dot ${levelLower}"></div>
+                    <div class="history-info">
+                        <div class="history-date">${dateStr} at ${timeStr}</div>
+                        <div class="history-risk">${p.risk_level} Risk</div>
+                    </div>
+                    <div class="history-score">${p.confidence ? p.confidence.toFixed(0) + '%' : '--'}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function updateTips(riskLevel) {
+        const tips = {
+            Low: [
+                '🌟 Great habits! Keep maintaining your current routine',
+                '📚 Continue balancing screen time with offline activities',
+                '💪 You\'re a digital wellness role model!'
+            ],
+            Medium: [
+                '📱 Set phone-free hours during study time',
+                '🌙 Enable digital curfew at 10 PM',
+                '🏃 Replace 30 mins of screen time with exercise'
+            ],
+            High: [
+                '⚠️ Start a gradual digital detox today',
+                '👨‍👩‍👧 Talk to parents or a counselor about your habits',
+                '📵 No phone 2 hours before sleep'
+            ]
+        };
+
+        const tipList = tips[riskLevel] || tips['Medium'];
+        document.getElementById('tips-container').innerHTML = tipList.map((tip, i) =>
+            `<div style="padding:8px 0;${i < tipList.length - 1 ? 'border-bottom:1px solid var(--border-color);' : ''}font-size:0.9rem;color:var(--text-secondary);">${tip}</div>`
+        ).join('');
+    }
+
+    // Logout
+    document.getElementById('nav-logout').addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (supabaseClient) await supabaseClient.auth.signOut();
+        window.location.href = '/login';
+    });
+
+    initDashboard();
+</script>
+
+</body>
+</html>

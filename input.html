@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Check your digital addiction risk with DigiGuard AI">
+    <title>DigiGuard - Check Risk</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar">
+    <a href="/" class="logo">
+        <span class="shield-icon">🛡️</span>
+        DigiGuard
+    </a>
+    <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/input" class="active">Check Risk</a></li>
+        <li><a href="/result">Results</a></li>
+        <li><a href="#" id="nav-logout" class="btn btn-secondary btn-sm">Logout</a></li>
+    </ul>
+</nav>
+
+<div class="page-container">
+    <div class="input-layout">
+        <!-- Sidebar Steps -->
+        <div class="input-sidebar">
+            <div class="step-indicator">
+                <div class="step-item completed">
+                    <div class="step-dot">✓</div>
+                    <div class="step-info">
+                        <div class="step-title">Personal Info</div>
+                        <div class="step-status">Completed</div>
+                    </div>
+                </div>
+                <div class="step-item active">
+                    <div class="step-dot">2</div>
+                    <div class="step-info">
+                        <div class="step-title">Screen Usage</div>
+                        <div class="step-status">In Progress</div>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-dot">3</div>
+                    <div class="step-info">
+                        <div class="step-title">Health Metrics</div>
+                        <div class="step-status">Pending</div>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-dot">4</div>
+                    <div class="step-info">
+                        <div class="step-title">Risk Assessment</div>
+                        <div class="step-status">Final Step</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="user-info-card" class="card" style="margin-top: 24px; display:none;">
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                    <div style="width:40px;height:40px;border-radius:50%;background:var(--accent-glow);display:flex;align-items:center;justify-content:center;color:var(--accent);font-weight:700;" id="user-avatar">?</div>
+                    <div>
+                        <div style="font-weight:600;" id="user-display-name">User</div>
+                        <div style="font-size:0.8rem;color:var(--text-muted);">DigiGuard Health ID</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Form -->
+        <div class="input-main">
+            <div class="card">
+                <h2 style="margin-bottom: 8px;">Daily Screen Usage</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 32px;">Move the sliders to indicate your daily average usage hours.</p>
+
+                <form id="risk-form">
+                    <!-- Screen Time Slider -->
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <div class="slider-label">
+                                <span class="material-symbols-outlined" style="font-size:1.1rem;">smartphone</span>
+                                Screen Time
+                            </div>
+                            <div class="slider-value" id="screen-time-value">4.0 <span>hrs</span></div>
+                        </div>
+                        <input type="range" id="screen-time" min="0" max="16" step="0.5" value="4"
+                            oninput="updateSlider('screen-time', this.value)">
+                        <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--text-muted);margin-top:4px;">
+                            <span>0 hrs</span><span>16 hrs</span>
+                        </div>
+                    </div>
+
+                    <!-- Social Media Slider -->
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <div class="slider-label">
+                                <span class="material-symbols-outlined" style="font-size:1.1rem;">forum</span>
+                                Social Media
+                            </div>
+                            <div class="slider-value" id="social-media-value">2.0 <span>hrs</span></div>
+                        </div>
+                        <input type="range" id="social-media" min="0" max="12" step="0.5" value="2"
+                            oninput="updateSlider('social-media', this.value)">
+                        <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--text-muted);margin-top:4px;">
+                            <span>0 hrs</span><span>12 hrs</span>
+                        </div>
+                    </div>
+
+                    <!-- Gaming Slider -->
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <div class="slider-label">
+                                <span class="material-symbols-outlined" style="font-size:1.1rem;">sports_esports</span>
+                                Gaming
+                            </div>
+                            <div class="slider-value" id="gaming-value">1.0 <span>hrs</span></div>
+                        </div>
+                        <input type="range" id="gaming" min="0" max="10" step="0.5" value="1"
+                            oninput="updateSlider('gaming', this.value)">
+                        <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--text-muted);margin-top:4px;">
+                            <span>0 hrs</span><span>10 hrs</span>
+                        </div>
+                    </div>
+
+                    <!-- Night Usage Slider -->
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <div class="slider-label">
+                                <span class="material-symbols-outlined" style="font-size:1.1rem;">dark_mode</span>
+                                Night Usage
+                            </div>
+                            <div class="slider-value" id="night-usage-value">0.5 <span>hrs</span></div>
+                        </div>
+                        <input type="range" id="night-usage" min="0" max="6" step="0.5" value="0.5"
+                            oninput="updateSlider('night-usage', this.value)">
+                        <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--text-muted);margin-top:4px;">
+                            <span>0 hrs</span><span>6 hrs</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block btn-lg" id="predict-btn" style="margin-top: 16px;">
+                        <span class="material-symbols-outlined">analytics</span>
+                        Predict My Risk
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loading">
+    <div class="loading-content">
+        <div class="spinner"></div>
+        <p style="color: var(--text-secondary);">Analyzing your digital habits...</p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const SUPABASE_URL = '{{ supabase_url }}';
+    const SUPABASE_KEY = '{{ supabase_key }}';
+    let supabaseClient = null;
+    if (SUPABASE_URL && SUPABASE_KEY) {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }
+
+    function showToast(msg, type = 'error') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast ' + type;
+        t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 4000);
+    }
+
+    function updateSlider(id, value) {
+        document.getElementById(id + '-value').innerHTML = parseFloat(value).toFixed(1) + ' <span>hrs</span>';
+    }
+
+    // Auth Guard
+    async function checkAuth() {
+        if (!supabaseClient) return;
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) {
+            window.location.href = '/login';
+            return;
+        }
+        // Show user info
+        const userCard = document.getElementById('user-info-card');
+        const userName = session.user.user_metadata?.full_name || session.user.email;
+        document.getElementById('user-display-name').textContent = userName;
+        document.getElementById('user-avatar').textContent = userName.charAt(0).toUpperCase();
+        userCard.style.display = 'block';
+    }
+    checkAuth();
+
+    // Logout
+    document.getElementById('nav-logout').addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (supabaseClient) await supabaseClient.auth.signOut();
+        window.location.href = '/login';
+    });
+
+    // Submit Risk Form
+    document.getElementById('risk-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('predict-btn');
+        const loading = document.getElementById('loading');
+
+        const screenTime = parseFloat(document.getElementById('screen-time').value);
+        const socialMedia = parseFloat(document.getElementById('social-media').value);
+        const gaming = parseFloat(document.getElementById('gaming').value);
+        const nightUsage = parseFloat(document.getElementById('night-usage').value);
+
+        btn.disabled = true;
+        loading.style.display = 'flex';
+
+        try {
+            // Get token
+            let token = '';
+            if (supabaseClient) {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                token = session?.access_token || '';
+            }
+
+            // Send to Flask
+            const response = await fetch('/api/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({
+                    screen_time: screenTime,
+                    social_media: socialMedia,
+                    gaming: gaming,
+                    night_usage: nightUsage
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.error) throw new Error(result.error);
+
+            // Save usage data to Supabase
+            if (supabaseClient) {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session) {
+                    await supabaseClient.from('usage_data').insert({
+                        user_id: session.user.id,
+                        screen_time: screenTime,
+                        social_media: socialMedia,
+                        gaming: gaming,
+                        night_usage: nightUsage
+                    });
+                    await supabaseClient.from('predictions').insert({
+                        user_id: session.user.id,
+                        risk_level: result.risk_level,
+                        confidence: result.confidence,
+                        screen_time: screenTime,
+                        social_media: socialMedia,
+                        gaming: gaming,
+                        night_usage: nightUsage
+                    });
+                }
+            }
+
+            // Store result in sessionStorage and redirect
+            sessionStorage.setItem('prediction_result', JSON.stringify(result));
+            window.location.href = '/result';
+
+        } catch (err) {
+            showToast(err.message || 'Prediction failed', 'error');
+            btn.disabled = false;
+            loading.style.display = 'none';
+        }
+    });
+</script>
+
+</body>
+</html>
